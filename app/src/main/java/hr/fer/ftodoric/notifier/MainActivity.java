@@ -33,18 +33,16 @@ public class MainActivity extends AppCompatActivity {
         src = (TextView) findViewById(R.id.webView);
         src.setMovementMethod(new ScrollingMovementMethod());
 
+        /**
+         * Function fetch() is executing the entire process of connecting to specific website,
+         * searching for data in raw html text and listing the items and it's information
+         * on the display.
+         * Items are regularly updated.
+         * Update time is set to 1 hour.
+         *
+         * @author ftodoric
+         */
         fetch();
-    }
-
-    private void refresh(int ms){
-        final Handler handler = new Handler();
-        final Runnable runnable = new Runnable(){
-            @Override
-            public void run() {
-                fetch();
-            }
-        };
-        handler.postDelayed(runnable, ms);
     }
 
     public void fetch(){
@@ -54,28 +52,35 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Item> listOfItems = new ArrayList<>();
         try{
             rawHTML = f.get();
-            Document doc = Jsoup.parse(rawHTML);
-            String pretty = doc.body().text();
+            //Document doc = Jsoup.parse(rawHTML);
+            //String pretty = doc.body().text();
 
-            //Searching for ID number and Title of njuskalo post
+            //Searching for ID number and Title of Njuskalo post
             String patternString = "<h3 class=\\\"entity-title\\\"><a name=\\\"([0-9]+)\\\" class=\\\"link\\\" href=\\\"[^\\\"]+\\\">[^<]+</a></h3>";
             Pattern pattern = Pattern.compile(patternString);
             Matcher matcher = pattern.matcher(rawHTML);
 
             String currentGroup = "";
+            String id;
+            String title;
+            int bracketCounter;
             while(matcher.find()){
-                String id = "";
-                String title = "";
-                int counter = 0;
-                currentGroup = matcher.group();
-                int index = 34;
-                while(currentGroup.charAt(index) != '"'){
-                    id += currentGroup.charAt(index);
-                    ++index;
+                id = "";
+                title = "";
+                bracketCounter = 0;
+                currentGroup = matcher.group(); //matcher.group() - lexical group found based on given pattern (regex)
+
+                //id searching
+                int indexOfIdNumber = 34;
+                while(currentGroup.charAt(indexOfIdNumber) != '"'){
+                    id += currentGroup.charAt(indexOfIdNumber);
+                    ++indexOfIdNumber;
                 }
+
+                //title searching
                 for(int i = 0; i < currentGroup.length(); ++i){
-                    if(currentGroup.charAt(i) == '>') counter++;
-                    if(counter == 2){
+                    if(currentGroup.charAt(i) == '>') bracketCounter++;
+                    if(bracketCounter == 2){
                         int k = 1;
                         while(currentGroup.charAt(i + k) != '<'){
                             title += currentGroup.charAt(i + k);
@@ -84,18 +89,20 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                 }
+
                 Item item = new Item(id, title, "", "");
                 listOfItems.add(item);
             }
 
-            //Searching for price of each post
+            //Searching for the price of each post
             patternString = "([0-9.]+)&nbsp;<span class=\\\"currency\\\">kn</span>";
             pattern = Pattern.compile(patternString);
             matcher = pattern.matcher(rawHTML);
 
             currentGroup = "";
+            String price;
             while(matcher.find()){
-                String price = "";
+                price = "";
                 currentGroup = matcher.group();
                 for(int i = 0; currentGroup.charAt(i) != '&'; ++i){
                     price += currentGroup.charAt(i);
@@ -108,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            //Searching for publishing date of each post
+            //Searching for the date of publishing of each post
             patternString = "pubdate=\\\"pubdate\\\">[^<]*";
             pattern = Pattern.compile(patternString);
             matcher = pattern.matcher(rawHTML);
@@ -127,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            //Building output text for app text view
+            //Building the output text for the app textView
             StringBuilder finalText = new StringBuilder();
             for(Item item : listOfItems){
                 finalText.append(item.toString() + "\n");
@@ -137,14 +144,26 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        //SLEEP IN MILLISECONDS: SLEEP TIME = 1h
+        //SLEEP TIME = 1h
         refresh(1*3600*1000);
+    }
+
+    private void refresh(int ms){
+        final Handler handler = new Handler();
+        final Runnable runnable = new Runnable(){
+            @Override
+            public void run() {
+                fetch();
+            }
+        };
+        handler.postDelayed(runnable, ms);
     }
 
     class Fetcher extends AsyncTask<String, Void, String> {
         public String doInBackground(String... urls){
             String result = "";
 
+            //Creating http connection
             try{
                 URL url = new URL(urls[0]);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();

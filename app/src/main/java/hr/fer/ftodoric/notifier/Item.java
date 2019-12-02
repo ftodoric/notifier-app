@@ -1,7 +1,10 @@
 package hr.fer.ftodoric.notifier;
 
-import android.widget.TextView;
-
+/**
+ * Class Item stores the infromation about each Njuskalo post.
+ *
+ * @author ftodoric
+ */
 public class Item {
     private String id;
     private String title;
