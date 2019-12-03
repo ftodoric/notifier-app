@@ -1,7 +1,10 @@
 package hr.fer.ftodoric.notifier;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import android.app.Notification;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,12 +26,15 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class MainActivity extends AppCompatActivity {
+    private NotificationManagerCompat notificationManager;
     private TextView src;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        notificationManager = NotificationManagerCompat.from(this);
 
         src = (TextView) findViewById(R.id.webView);
         src.setMovementMethod(new ScrollingMovementMethod());
@@ -140,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
                 finalText.append(item.toString() + "\n");
             }
             src.setText(finalText.toString());
+
+            //Notification to the user that the data from njuskalo posts has been updated
+            sendOnChannel1(finalText.toString());
+
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -181,5 +191,23 @@ public class MainActivity extends AppCompatActivity {
 
             return result;
         }
+    }
+
+    /**
+     * Function that can be called to issue a notification
+     *
+     * @param text: The text that is printed in expanded notification window.
+     */
+    public void sendOnChannel1(String text){
+        Notification notification = new NotificationCompat.Builder(this, NotificationClass.CHANNEL_1_ID)
+                .setSmallIcon(R.drawable.ic_info)
+                .setContentTitle("Ažuriranje obavljeno!")
+                .setContentText("Prikaži više...")
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(text))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .build();
+        notificationManager.notify(1, notification);
     }
 }
