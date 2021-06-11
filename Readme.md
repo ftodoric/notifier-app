@@ -5,4 +5,4 @@ This simple Android app establishes a connection to a specific website, then rea
 The data is displayed to user and is updated regularly. User is notified about every update.
 
 _ftodoric_  
-_03/12/2019._  
+_03/12/2019_  
